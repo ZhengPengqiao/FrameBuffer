@@ -22,24 +22,19 @@ int main ( int argc, char *argv[] )
     int topy = 0;
 
     framebuffer.Init((char*)DEV_NAME);
-    
+    framebuffer.startDisplayThread();
     BmpInfo *bmpInfo = new BmpInfo((char*)"./assert/image.bmp");
     /*BMP的上下是翻转的，这里将图像数据翻转过来*/
     bmpInfo->MirrorByV();
     printf("fileName=%s  width=%d height=%d length=%d\n", bmpInfo->fileName, bmpInfo->imagewidth, bmpInfo->imageheight, bmpInfo->pixellength);
     while(1)
     {
-        // FBClearColor(fbInfo, 0, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres-40, 0, 0, 0);
-        // FBShowBmp(fbInfo, topx, topy,\
-        //     bmpInfo->pixeldata, bmpInfo->imagewidth, bmpInfo->imageheight);
-             
         framebuffer.BufferClearColor(framebuffer.pnowBackBuffer, framebuffer.width, framebuffer.height,\
             0, 0, framebuffer.width, framebuffer.height, 0, 0, 0);
         framebuffer.BufferShowBmp(framebuffer.pnowBackBuffer, framebuffer.width, framebuffer.height, \
             topx, topy, bmpInfo->pixeldata, bmpInfo->imagewidth, bmpInfo->imageheight);
         framebuffer.swapDisplayBuffer();
 
-       
         usleep(33000);
         topx+=3;
         if( topx > framebuffer.vinfo.xres )

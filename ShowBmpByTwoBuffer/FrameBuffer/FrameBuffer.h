@@ -28,6 +28,11 @@ public:
 	int swapDisplayBuffer();
 	/* 函数介绍 : 释放分配的资源*/
 	int Release();
+	/* 函数介绍 : 开启绘制的线程 */
+	int startDisplayThread();
+	/* 显示线程函数 */
+	static void * displayFun(void *arg);
+
 
 	struct fb_var_screeninfo vinfo;
     struct fb_fix_screeninfo finfo;
@@ -40,11 +45,8 @@ public:
 	int width;				//FrameBuffer的宽
 	int height;				//FrameBuffer的高
 	int frameRateTime;      //刷新间隔us
-
-private:
-	/* 显示线程函数 */
-	static void * displayFun(void *arg);
 	char *fbp; 				//FrameBuffer的缓冲地址
+private:
     int fd;  	
     
 };

@@ -238,7 +238,7 @@ void * FrameBuffer::displayFun(void *arg)
                 gettimeofday(&te, 0);
                 float tus = (te.tv_sec - ts.tv_sec) * 1000 + (te.tv_usec - ts.tv_usec) / 1000;
                 float fps = 20000.0f / tus;
-                //printf("fps = %.3f\n", fps);
+                printf("fps = %.3f\n", fps);
                 gettimeofday(&ts, 0);
             }
         }
@@ -257,8 +257,6 @@ void * FrameBuffer::displayFun(void *arg)
  */
 int FrameBuffer::Init(char * fileName)
 {
-    pthread_t thr1;
-
     /*打开设备文件*/  
     fd = open(fileName, O_RDWR);  
     if (!fd)  
@@ -318,7 +316,18 @@ int FrameBuffer::Init(char * fileName)
 
     pnowDrawBuffer = pSwapBuffer+finfo.smem_len*nowDrawBuffer;
     pnowBackBuffer = pSwapBuffer+finfo.smem_len*nowBackBuffer;
+}
 
+
+/*
+ * 函数名称 : startDisplayThread
+ * 函数介绍 : 开启绘制的线程
+ * 参数介绍 : 无
+ * 返回值   : -1:失败，  0：成功
+ */
+int FrameBuffer::startDisplayThread()
+{
+    pthread_t thr1;
     if(pthread_create(&thr1,NULL,displayFun,this)!=0)
     {
         printf("create thread failed!\n");
