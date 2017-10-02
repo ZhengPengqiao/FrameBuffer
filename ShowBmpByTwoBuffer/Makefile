@@ -1,12 +1,13 @@
 LDFLAGS			:=  -lpthread
 TARGET			:= showBmpByTwoBuffer
-INCLUDE += -I./BMP
+INCLUDE += -I./BMP -I./FrameBuffer
 
 STRIP           := ls
 CFLAGS	+=
 OBJS = \
 	ShowBmpByTwoBuffer.o\
 	./BMP/bmp.o\
+	./FrameBuffer/FrameBuffer.o\
 
 all:$(TARGET)
 
