@@ -22,7 +22,6 @@ int main ( int argc, char *argv[] )
     int topy = 0;
 
     framebuffer.Init((char*)DEV_NAME);
-    framebuffer.startDisplayThread();
     BmpInfo *bmpInfo = new BmpInfo((char*)"./assert/image.bmp");
     /*BMP的上下是翻转的，这里将图像数据翻转过来*/
     bmpInfo->MirrorByV();
@@ -33,7 +32,9 @@ int main ( int argc, char *argv[] )
             0, 0, framebuffer.width, framebuffer.height, 0, 0, 0);
         framebuffer.BufferShowBmp(framebuffer.pnowBackBuffer, framebuffer.width, framebuffer.height, \
             topx, topy, bmpInfo->pixeldata, bmpInfo->imagewidth, bmpInfo->imageheight);
+
         framebuffer.swapDisplayBuffer();
+        FrameBuffer::frameBufferDrawOnce(&framebuffer);
 
         usleep(33000);
         topx+=3;

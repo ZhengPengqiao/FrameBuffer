@@ -248,6 +248,29 @@ void * FrameBuffer::displayFun(void *arg)
     return NULL;
 }
 
+void * FrameBuffer::frameBufferDrawOnce(void *arg)
+{
+    static struct timeval ts, te;
+    static int frameCount = 0;
+    int ret;
+
+    FrameBuffer *frameBuffer=(FrameBuffer *)arg;
+    if(frameBuffer->pnowDrawBuffer != NULL)
+    {
+        memcpy(frameBuffer->fbp, frameBuffer->pnowDrawBuffer, frameBuffer->finfo.smem_len);
+        if( frameCount % 20 == 0 )
+        {
+            gettimeofday(&te, 0);
+            float tus = (te.tv_sec - ts.tv_sec) * 1000 + (te.tv_usec - ts.tv_usec) / 1000;
+            float fps = 20000.0f / tus;
+            printf("fps = %.3f\n", fps);
+            gettimeofday(&ts, 0);
+        }
+    }
+    frameCount++;
+    return NULL;
+}
+
 
 /*
  * 函数名称 : Init
