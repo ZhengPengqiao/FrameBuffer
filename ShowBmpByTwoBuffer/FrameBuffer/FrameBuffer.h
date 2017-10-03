@@ -18,10 +18,6 @@ public:
 	int ClearColor(int x, int y, int w, int h, int r, int g, int b);
 	/* 函数介绍 : 将指定的图像显示在指定的位置*/
 	int ShowBmp( int x, int y, char *bmpBuff, int bw, int bh);
-	/* 函数介绍 : 将指定的图像显示在指定的位置 */
-	int BufferShowBmp( char* fbBuffer, int fbw, int fbh, int x, int y, char *bmpBuff, int bw, int bh);
-	/* 函数介绍 : 使用指定颜色刷新FrameBuffer */
-	int BufferClearColor(char* fbBuffer, int fbw, int fbh, int x, int y, int w, int h, int r, int g, int b);
 	/* 函数介绍 : 初始化FrameBuffer */
 	int Init(char * fileName);
 	/* 函数介绍 : 交换绘制图像的buffer */

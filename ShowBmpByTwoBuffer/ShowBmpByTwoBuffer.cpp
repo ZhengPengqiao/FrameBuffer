@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <sys/time.h>  
 #include <pthread.h>
+#include "Graphic2D.h"
 #include "bmp.h"
 #include "FrameBuffer.h"
 
@@ -18,6 +19,7 @@
 int main ( int argc, char *argv[] )  
 {
     FrameBuffer framebuffer;
+    Graphic2D graphic2D;
     int topx = 0;
     int topy = 0;
 
@@ -28,22 +30,22 @@ int main ( int argc, char *argv[] )
     printf("fileName=%s  width=%d height=%d length=%d\n", bmpInfo->fileName, bmpInfo->imagewidth, bmpInfo->imageheight, bmpInfo->pixellength);
     while(1)
     {
-        framebuffer.BufferClearColor(framebuffer.pnowBackBuffer, framebuffer.width, framebuffer.height,\
+        graphic2D.G2DClearColor(framebuffer.pnowBackBuffer, framebuffer.width, framebuffer.height,\
             0, 0, framebuffer.width, framebuffer.height, 0, 0, 0);
-        framebuffer.BufferShowBmp(framebuffer.pnowBackBuffer, framebuffer.width, framebuffer.height, \
+        graphic2D.G2DShowBmp(framebuffer.pnowBackBuffer, framebuffer.width, framebuffer.height, \
             topx, topy, bmpInfo->pixeldata, bmpInfo->imagewidth, bmpInfo->imageheight);
 
         framebuffer.swapDisplayBuffer();
         FrameBuffer::frameBufferDrawOnce(&framebuffer);
 
         usleep(33000);
+        
         topx+=3;
         if( topx > framebuffer.vinfo.xres )
         {
             topx = 0;
         }
         topy+=5;
-
         if( topy > framebuffer.vinfo.yres )
         {
             topy = 0;
@@ -52,7 +54,5 @@ int main ( int argc, char *argv[] )
 
     delete bmpInfo;
     framebuffer.Release();
-
-
     return 0;  
 }  
