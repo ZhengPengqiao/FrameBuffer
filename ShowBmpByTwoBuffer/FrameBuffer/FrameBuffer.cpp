@@ -62,6 +62,12 @@ int FrameBuffer::ClearColor( int x, int y, int w, int h, int r, int g, int b)
     int drawH = 0;
     int fbw = finfo.line_length/4;
     int fbh = vinfo.yres;
+    
+    if ( pnowBackBuffer == NULL)
+    {
+        return -1;
+    }
+
     if ( x + w > fbw )
     {
         drawW = fbw-x;
@@ -84,10 +90,10 @@ int FrameBuffer::ClearColor( int x, int y, int w, int h, int r, int g, int b)
     {
         for( int j = 0; j < drawW; j++ )
         {
-            fbp[fbw*4*(i+y)+(j+x)*4] = b;
-            fbp[fbw*4*(i+y)+(j+x)*4+1] = g;
-            fbp[fbw*4*(i+y)+(j+x)*4+2] = r;
-            fbp[fbw*4*(i+y)+(j+x)*4+3] = 0;
+            pnowBackBuffer[fbw*4*(i+y)+(j+x)*4] = b;
+            pnowBackBuffer[fbw*4*(i+y)+(j+x)*4+1] = g;
+            pnowBackBuffer[fbw*4*(i+y)+(j+x)*4+2] = r;
+            pnowBackBuffer[fbw*4*(i+y)+(j+x)*4+3] = 0;
         }
     }
     return 0;
@@ -106,6 +112,12 @@ int FrameBuffer::ShowBmp( int x, int y, char *bmpBuff, int bw, int bh)
     int drawH = 0;
     int fbw = finfo.line_length/4;
     int fbh = vinfo.yres;
+
+    if ( pnowBackBuffer == NULL)
+    {
+        return -1;
+    }
+
     if ( x + bw > fbw )
     {
         drawW = fbw-x;
@@ -128,10 +140,10 @@ int FrameBuffer::ShowBmp( int x, int y, char *bmpBuff, int bw, int bh)
     {
         for( int j = 0; j < drawW; j++ )
         {
-            fbp[fbw*4*(i+y)+(j+x)*4] = bmpBuff[i*bw*3+j*3+0];
-            fbp[fbw*4*(i+y)+(j+x)*4+1] = bmpBuff[i*bw*3+j*3+1];
-            fbp[fbw*4*(i+y)+(j+x)*4+2] = bmpBuff[i*bw*3+j*3+2];
-            fbp[fbw*4*(i+y)+(j+x)*4+3] = 255;
+            pnowBackBuffer[fbw*4*(i+y)+(j+x)*4] = bmpBuff[i*bw*3+j*3+0];
+            pnowBackBuffer[fbw*4*(i+y)+(j+x)*4+1] = bmpBuff[i*bw*3+j*3+1];
+            pnowBackBuffer[fbw*4*(i+y)+(j+x)*4+2] = bmpBuff[i*bw*3+j*3+2];
+            pnowBackBuffer[fbw*4*(i+y)+(j+x)*4+3] = 255;
         }
     } 
 }
