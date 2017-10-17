@@ -51,9 +51,10 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-
+radarShow
 showBmp
 showFBInfo
 showBmpByTwoBuffer
 pointEvent
 GUIWidget
+

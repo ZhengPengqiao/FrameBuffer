@@ -28,6 +28,7 @@ int RadarDiagrame::mallocPixelData(int width, int height)
     }
 
     pixellength *= height;
+
     //读取像素数据
     pixeldata = (char *)malloc(pixellength);
     if(pixeldata == NULL)
@@ -43,16 +44,17 @@ int RadarDiagrame::mallocPixelData(int width, int height)
     this->pixelheight = height;
 
 
-    for(int i = 0; i < width; i++ )
+    for(int i = 0; i < height; i++ )
     {
-        for( int j = 0; j < height; j++ )
+        for( int j = 0; j < width; j++ )
         {
             pixeldata[ (i*width+j)*3 ] = 20;
             pixeldata[ (i*width+j)*3+1 ] = 20;
             pixeldata[ (i*width+j)*3+2 ] = 20;
         }
-    }
 
+    }
+    
     updatePixeldata();
     return 0;
 }

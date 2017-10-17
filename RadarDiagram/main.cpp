@@ -161,7 +161,12 @@ int main ( int argc, char *argv[] )
     }
 
     RadarDiagrame *radar = new RadarDiagrame();
-    radar->mallocPixelData(200,200);
+    if ( radar == NULL )
+    {
+        perror("radar Err:");
+    }
+    radar->mallocPixelData(400,600);
+    
     printf("radar  width=%d height=%d length=%d\n", radar->pixelwidth, radar->pixelheight, radar->pixellength);
     while(1)
     {
