@@ -33,7 +33,7 @@ private:
     int r;
     int g;
     int b;
-    int status[3][7];
+    int status[4][7];
 };
 
 #endif // RADARDIAGRAM_H

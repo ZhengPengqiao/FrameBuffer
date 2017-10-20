@@ -73,11 +73,11 @@ void RadarDiagrame::updatePixeldata()
     int j = 0;
     for(i = 0; i < 7; i++)
     {
-        for(j = 0; j < 3; j++)
+        for(j = 0; j < 4; j++)
         {
             if(status[j][i] == 0)
             {
-                    addArcArea(-50,100,  450+j*300,200, 100+i*15,10, 60,30*i,0  ,30,30*(i+1),0);
+                    addArcArea(-50,100,  400+j*200,150, 90+i*15,10, 60,30*i,0  ,30,30*(i+1),0);
             }
         }
     }
