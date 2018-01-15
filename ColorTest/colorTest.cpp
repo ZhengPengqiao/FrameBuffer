@@ -8,7 +8,6 @@
 #include <sys/ioctl.h>  
 #include <arpa/inet.h>
 #include <sys/time.h>  
-#include "bmp.h"
 
 #define DEV_NAME "/dev/fb0"
 
@@ -99,20 +98,22 @@ int ClearFrameBuff(FrameBufferInfo fbInfo, int x, int y, int w, int h, int r, in
 
 
 /*
- * 函数名称 : ShowBmp
- * 函数介绍 : 将指定的图像显示在指定的位置
- * 参数介绍 : fbInfo:FrameBuffer信息， x,y:显示的位置， bmpBuff:图片数据， bw,bh:图片宽高,  
+ * 函数名称 : TestColor
+ * 函数介绍 : 测试颜色FrameBuffer
+ * 参数介绍 : fbInfo:FrameBuffer相关信息， x,y,w,h：清空的矩形，  br,bg,bb:使用的颜色,
  *           bps:framebuffer的bps
- * 返回值   : -1:失败，  0：成功,
+ * 返回值   : -1:失败，  0：成功
  */
-int ShowBmp( FrameBufferInfo fbInfo, int x, int y, char *bmpBuff, int bw, int bh, int bps)
+int TestColor(FrameBufferInfo fbInfo, int x, int y, int w, int h, int br, int bg, int bb, int bps)
 {
     unsigned int rgb = 0;
     int drawW = 0;
     int drawH = 0;
     int fbw = 0;
     int fbh = fbInfo.vinfo.yres;
-
+    int r = br, g = bg, b = bb;
+    int rgFlag = 0;
+    
     switch( bps )
     {
         case 32:
@@ -122,50 +123,66 @@ int ShowBmp( FrameBufferInfo fbInfo, int x, int y, char *bmpBuff, int bw, int bh
             fbw = fbInfo.finfo.line_length/2;
         break;
     }
-
-    if ( x + bw > fbw )
+    if ( x + w > fbw )
     {
         drawW = fbw-x;
     }
     else
     {
-        drawW = bw;
+        drawW = w;
     }
 
-    if ( y + bh > fbh )
+    if ( y + h > fbh )
     {
         drawH = fbh-y;
     }
     else
     {
-        drawH = bh;
+        drawH = h;
     }
 
     for( int i = 0; i < drawH; i++ )
     {
+        r = br;
+        g = bg;
         for( int j = 0; j < drawW; j++ )
-        {
-                switch( bps )
-                {
-                    case 32:
-                        fbInfo.fbp[fbw*4*(i+y)+(j+x)*4] = bmpBuff[i*bw*3+j*3+0];
-                        fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+1] = bmpBuff[i*bw*3+j*3+1];
-                        fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+2] = bmpBuff[i*bw*3+j*3+2];
-                        fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+3] = 255;
-                    break;
-                    case 16:
-                        rgb = (((bmpBuff[i*bw*3+j*3+2] << 8) & 0xF800) | 
-                                ((bmpBuff[i*bw*3+j*3+1] << 3) & 0x7E0) | 
-                                ((bmpBuff[i*bw*3+j*3+0] >> 3)));
-                        fbInfo.fbp[fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
-                        fbInfo.fbp[fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
-                    break;
-                }
+        {   
+            switch( bps )
+            {
+                case 32:
+                    r = (br+i)%255;
+                    g = (bg+j)%255;
 
+                    if( (i+1)%255 == 0 )
+                    {
+                        b = (bb+50)%255;
+                    }
+                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4] = r&0xFF;
+                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+1] = g&0xFF;
+                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+2] = b&0xFF;
+                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+3] = 0;
+                break;
+                case 16:
+                    
+                    r = (br+i)%255;
+                    g = (bg+j)%255;
+
+                    if( (i+1)%255 == 0 )
+                    {
+                        b = (bb+50)%255;
+                    }
+
+                    rgb = (((r << 8) & 0xF800) | 
+                        ((g << 3) & 0x7E0) | 
+                        ((b >> 3)));
+                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
+                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
+                break;
+            }
         }
-    } 
+    }
+    return 0;
 }
-
 
 int main ( int argc, char *argv[] )  
 {  
@@ -174,13 +191,13 @@ int main ( int argc, char *argv[] )
     int topy = 0;
     int frameCount = 0;
     int bps = 0;
-    struct timeval ts, te;
 
     int r = 0;
     int g = 0;
     int b = 0;
+    int t = 1;
 
-    if(argc == 4)
+    if(argc >= 4)
     {
         r = atoi(argv[1]);
         g = atoi(argv[2]);
@@ -188,6 +205,11 @@ int main ( int argc, char *argv[] )
         printf("clear r=%d, g=%d, b=%d \n", r, g, b);
     }
 
+    if(argc >= 5)
+    {
+        t = atoi(argv[4]);
+        printf("clear t=%d \n", t);
+    }
     /*打开设备文件*/  
     fbInfo.fd = open(DEV_NAME, O_RDWR);  
     if (!fbInfo.fd)  
@@ -205,6 +227,7 @@ int main ( int argc, char *argv[] )
         close(fbInfo.fd);  
         return 0; 
     }
+    /* != 0 Gray levels instead of colors */ 
     printf("vinfo.grayscale=%d\n", fbInfo.vinfo.grayscale); 
     /* != 0 Non standard pixel format */ 
     printf("vinfo.nonstd=%d\n", fbInfo.vinfo.nonstd); 
@@ -286,39 +309,20 @@ int main ( int argc, char *argv[] )
         return 0;
     }  
 
-    BmpInfo *bmpInfo = new BmpInfo((char*)"./assert/image.bmp");
-    /*BMP的上下是翻转的，这里将图像数据翻转过来*/
-    bmpInfo->MirrorByV();
-    printf("fileName=%s  width=%d height=%d length=%d\n", bmpInfo->fileName, bmpInfo->imagewidth, bmpInfo->imageheight, bmpInfo->pixellength);
+    printf("clear t=%d r=%d g=%d b=%d \n", t, r, g, b);
+
+
     while(1)
     {
-        ClearFrameBuff(fbInfo, 0, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, r, g, b, bps);
-        ShowBmp(fbInfo, topx, topy,\
-            bmpInfo->pixeldata, bmpInfo->imagewidth, bmpInfo->imageheight, bps);
+        if ( t == 1 )
+        {
+            TestColor(fbInfo, 0, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, r, g, b, bps);
+        }
+        else
+        {
+            ClearFrameBuff(fbInfo, 0, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, r, g, b, bps);
+        }
         usleep(33000);
-
-        topx+=3;
-        if( topx > fbInfo.vinfo.xres )
-        {
-            topx = 0;
-        }
-        topy+=5;
-
-        if( topy > fbInfo.vinfo.yres )
-        {
-            topy = 0;
-        }
-
-
-        if( frameCount % 20 == 0 )
-        {
-            gettimeofday(&te, 0);
-            float tus = (te.tv_sec - ts.tv_sec) * 1000 + (te.tv_usec - ts.tv_usec) / 1000;
-            float fps = 20000.0f / tus;
-            printf("fps = %.3f\n", fps);
-            gettimeofday(&ts, 0);
-        }
-        frameCount++;
     }
 
 
