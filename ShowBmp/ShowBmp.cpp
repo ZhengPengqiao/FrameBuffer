@@ -175,19 +175,24 @@ int main ( int argc, char *argv[] )
     int frameCount = 0;
     int bps = 0;
     struct timeval ts, te;
-
+    BmpInfo *bmpInfo = NULL;
     int r = 0;
     int g = 0;
     int b = 0;
 
-    if(argc == 4)
+    if(argc == 2)
     {
-        r = atoi(argv[1]);
-        g = atoi(argv[2]);
-        b = atoi(argv[3]);
-        printf("clear r=%d, g=%d, b=%d \n", r, g, b);
+        bmpInfo = new BmpInfo(argv[1]);
+        /*BMP的上下是翻转的，这里将图像数据翻转过来*/
+        bmpInfo->MirrorByV();
+        printf("fileName=%s  width=%d height=%d length=%d\n", bmpInfo->fileName, bmpInfo->imagewidth, bmpInfo->imageheight, bmpInfo->pixellength);
+    }
+    else
+    {
+        printf("Used: %s fileName \n", argv[0]);
     }
 
+    
     /*打开设备文件*/  
     fbInfo.fd = open(DEV_NAME, O_RDWR);  
     if (!fbInfo.fd)  
@@ -286,10 +291,6 @@ int main ( int argc, char *argv[] )
         return 0;
     }  
 
-    BmpInfo *bmpInfo = new BmpInfo((char*)"./assert/image.bmp");
-    /*BMP的上下是翻转的，这里将图像数据翻转过来*/
-    bmpInfo->MirrorByV();
-    printf("fileName=%s  width=%d height=%d length=%d\n", bmpInfo->fileName, bmpInfo->imagewidth, bmpInfo->imageheight, bmpInfo->pixellength);
     while(1)
     {
         ClearFrameBuff(fbInfo, 0, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, r, g, b, bps);
