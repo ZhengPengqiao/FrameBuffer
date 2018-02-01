@@ -65,12 +65,12 @@ int ClearFrameBuff(FrameBufferInfo fbInfo, int x, int y, int w, int h, int r, in
     switch( bps )
     {
         case 32:
-            rgb = (r<<24) | (g<<16) | (b<<8);
+            rgb = (b<<24) | (g<<16) | (r<<8);
         break;
         case 16:
-            rgb = (((unsigned(r) << 8) & 0xF800) | 
+            rgb = (((unsigned(b) << 8) & 0xF800) | 
                     ((unsigned(g) << 3) & 0x7E0) | 
-                    ((unsigned(b) >> 3)));
+                    ((unsigned(r) >> 3)));
         break;
     }
 
@@ -157,9 +157,9 @@ int TestColor(FrameBufferInfo fbInfo, int x, int y, int w, int h, int br, int bg
                     {
                         b = (bb+50)%255;
                     }
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4] = r&0xFF;
+                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4] = b&0xFF;
                     fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+1] = g&0xFF;
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+2] = b&0xFF;
+                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+2] = r&0xFF;
                     fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+3] = 0;
                 break;
                 case 16:
@@ -172,9 +172,9 @@ int TestColor(FrameBufferInfo fbInfo, int x, int y, int w, int h, int br, int bg
                         b = (bb+50)%255;
                     }
 
-                    rgb = (((r << 8) & 0xF800) | 
+                    rgb = (((b << 8) & 0xF800) | 
                         ((g << 3) & 0x7E0) | 
-                        ((b >> 3)));
+                        ((r >> 3)));
                     fbInfo.fbp[fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
                     fbInfo.fbp[fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
                 break;
