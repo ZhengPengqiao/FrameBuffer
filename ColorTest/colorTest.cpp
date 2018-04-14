@@ -20,6 +20,11 @@ typedef struct FrameBufferInfo
     int fd;  
 }FrameBufferInfo;
 
+static int r = 0;
+static int g = 0;
+static int b = 0;
+static int uc = 0;
+
 
 /*
  * 函数名称 : ClearFrameBuff
@@ -87,8 +92,8 @@ int ClearFrameBuff(FrameBufferInfo fbInfo, int x, int y, int w, int h, int r, in
                     fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+3] = (rgb)&0xFF;
                 break;
                 case 16:
-                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2] = (rgb>>8)&0xFF;
-                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2+1] = (rgb)&0xFF;
+                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
+                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
                 break;
             }
         }
@@ -157,7 +162,7 @@ int TestColor(FrameBufferInfo fbInfo, int x, int y, int w, int h, int br, int bg
                     {
                         b = (bb+50)%255;
                     }
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4] = b&0xFF;
+                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4]   = b&0xFF;
                     fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+1] = g&0xFF;
                     fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+2] = r&0xFF;
                     fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+3] = 0;
@@ -184,6 +189,59 @@ int TestColor(FrameBufferInfo fbInfo, int x, int y, int w, int h, int br, int bg
     return 0;
 }
 
+
+void showHelp()
+{
+    printf("./programe options \n");    
+    printf("USED:");
+    printf("    -help: show help info");
+    printf("    -uc: use user color show (default %s)\n", uc?"True":"False");
+    printf("    -r value: r value (default %d)\n", r);
+    printf("    -g value: g value (default %d)\n", g);
+    printf("    -b value: b value (default %d)\n", b);
+}
+
+
+int checkParam(int argc,char **argv)
+{
+    int i = 0;
+    for(i = 1;i < argc;i++)
+    {
+        if( strcmp("-help", argv[i]) == 0 )
+        {
+            showHelp();
+            return -1;
+        }
+        else if( strcmp("-t", argv[i]) == 0 )
+        {
+            uc = 1;
+        }
+        else if( strcmp("-r", argv[i]) == 0 )
+        {
+            r = atoi(argv[i+1]);
+            i++;
+        }
+        else if( strcmp("-g", argv[i]) ==0 )
+        {
+            g = atoi(argv[i+1]);
+            i++;
+        }
+        else if( strcmp("-b", argv[i]) ==0 )
+        {
+            b = atoi(argv[i+1]);
+            i++;
+        }
+        else
+        {
+            printf("param %s is not support \n\n", argv[i]);
+            showHelp();
+            return -1;
+        }
+    }
+    return 0;
+}
+
+
 int main ( int argc, char *argv[] )  
 {  
     FrameBufferInfo fbInfo;
@@ -192,24 +250,14 @@ int main ( int argc, char *argv[] )
     int frameCount = 0;
     int bps = 0;
 
-    int r = 0;
-    int g = 0;
-    int b = 0;
-    int t = 1;
-
-    if(argc >= 4)
+    if ( checkParam(argc, argv) )
     {
-        r = atoi(argv[1]);
-        g = atoi(argv[2]);
-        b = atoi(argv[3]);
-        printf("clear r=%d, g=%d, b=%d \n", r, g, b);
+        printf("checkParam Err\n");
+        return 0;
     }
 
-    if(argc >= 5)
-    {
-        t = atoi(argv[4]);
-        printf("clear t=%d \n", t);
-    }
+
+
     /*打开设备文件*/  
     fbInfo.fd = open(DEV_NAME, O_RDWR);  
     if (!fbInfo.fd)  
@@ -309,12 +357,12 @@ int main ( int argc, char *argv[] )
         return 0;
     }  
 
-    printf("clear t=%d r=%d g=%d b=%d \n", t, r, g, b);
+    printf("clear t=%d r=%d g=%d b=%d \n", uc, r, g, b);
 
 
     while(1)
     {
-        if ( t == 1 )
+        if ( uc == 1 )
         {
             TestColor(fbInfo, 0, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, r, g, b, bps);
         }
