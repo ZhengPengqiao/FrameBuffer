@@ -73,9 +73,9 @@ int ClearFrameBuff(FrameBufferInfo fbInfo, int x, int y, int w, int h, int r, in
             rgb = (b<<24) | (g<<16) | (r<<8);
         break;
         case 16:
-            rgb = (((unsigned(b) << 8) & 0xF800) | 
+            rgb = (((unsigned(r) << 8) & 0xF800) | 
                     ((unsigned(g) << 3) & 0x7E0) | 
-                    ((unsigned(r) >> 3)));
+                    ((unsigned(b) >> 3)));
         break;
     }
 
@@ -148,38 +148,24 @@ int TestColor(FrameBufferInfo fbInfo, int x, int y, int w, int h, int br, int bg
 
     for( int i = 0; i < drawH; i++ )
     {
-        r = br;
-        g = bg;
         for( int j = 0; j < drawW; j++ )
-        {   
+        {
+
+            r = (unsigned int)(br + (float)i/drawH*255)%255;
+            g = (unsigned int)(bg + (float)j/drawW*255)%255;
+            b = bb % 255;
             switch( bps )
             {
                 case 32:
-                    r = (br+i)%255;
-                    g = (bg+j)%255;
-
-                    if( (i+1)%255 == 0 )
-                    {
-                        b = (bb+50)%255;
-                    }
                     fbInfo.fbp[fbw*4*(i+y)+(j+x)*4]   = b&0xFF;
                     fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+1] = g&0xFF;
                     fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+2] = r&0xFF;
                     fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+3] = 0;
                 break;
                 case 16:
-                    
-                    r = (br+i)%255;
-                    g = (bg+j)%255;
-
-                    if( (i+1)%255 == 0 )
-                    {
-                        b = (bb+50)%255;
-                    }
-
-                    rgb = (((b << 8) & 0xF800) | 
+                    rgb = (((r << 8) & 0xF800) | 
                         ((g << 3) & 0x7E0) | 
-                        ((r >> 3)));
+                        ((b >> 3)));
                     fbInfo.fbp[fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
                     fbInfo.fbp[fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
                 break;
@@ -194,7 +180,7 @@ void showHelp()
 {
     printf("./programe options \n");    
     printf("USED:");
-    printf("    -help: show help info");
+    printf("    -help: show help info\n");
     printf("    -uc: use user color show (default %s)\n", uc?"True":"False");
     printf("    -r value: r value (default %d)\n", r);
     printf("    -g value: g value (default %d)\n", g);
@@ -212,7 +198,7 @@ int checkParam(int argc,char **argv)
             showHelp();
             return -1;
         }
-        else if( strcmp("-t", argv[i]) == 0 )
+        else if( strcmp("-uc", argv[i]) == 0 )
         {
             uc = 1;
         }
@@ -357,12 +343,12 @@ int main ( int argc, char *argv[] )
         return 0;
     }  
 
-    printf("clear t=%d r=%d g=%d b=%d \n", uc, r, g, b);
+    printf("clear uc=%d r=%d g=%d b=%d \n", uc, r, g, b);
 
 
     while(1)
     {
-        if ( uc == 1 )
+        if ( uc == 0 )
         {
             TestColor(fbInfo, 0, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, r, g, b, bps);
         }
