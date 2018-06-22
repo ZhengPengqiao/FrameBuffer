@@ -181,7 +181,7 @@ void showHelp()
     printf("./programe options \n");    
     printf("USED:");
     printf("    -help: show help info\n");
-    printf("    -uc: use user color show (default %s)\n", uc?"True":"False");
+    printf("    -uc value: 0:color test 1:color patten 2:use usr color (default %s)\n", uc);
     printf("    -r value: r value (default %d)\n", r);
     printf("    -g value: g value (default %d)\n", g);
     printf("    -b value: b value (default %d)\n", b);
@@ -200,7 +200,8 @@ int checkParam(int argc,char **argv)
         }
         else if( strcmp("-uc", argv[i]) == 0 )
         {
-            uc = 1;
+            uc = atoi(argv[i+1]);
+            i++;
         }
         else if( strcmp("-r", argv[i]) == 0 )
         {
@@ -351,6 +352,18 @@ int main ( int argc, char *argv[] )
         if ( uc == 0 )
         {
             TestColor(fbInfo, 0, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, r, g, b, bps);
+        }
+        else if(uc == 1)
+        {
+            int len = fbInfo.vinfo.xres/8;
+            ClearFrameBuff(fbInfo, 0*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xff, 0xff, 0xff, bps);
+            ClearFrameBuff(fbInfo, 1*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xb8, 0xc6, 0x00, bps);
+            ClearFrameBuff(fbInfo, 2*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0xc2, 0xca, bps);
+            ClearFrameBuff(fbInfo, 3*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0xc6, 0x00, bps);
+            ClearFrameBuff(fbInfo, 4*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xc7, 0x00, 0xb9, bps);
+            ClearFrameBuff(fbInfo, 5*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xc4, 0x00, 0x00, bps);
+            ClearFrameBuff(fbInfo, 6*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0x00, 0xcb, bps);
+            ClearFrameBuff(fbInfo, 7*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0x00, 0x00, bps);
         }
         else
         {
