@@ -176,12 +176,88 @@ int TestColor(FrameBufferInfo fbInfo, int x, int y, int w, int h, int br, int bg
 }
 
 
+
+/*
+ * 函数名称 : CheckerBoard
+ * 函数介绍 : 测试颜色FrameBuffer
+ * 参数介绍 : fbInfo:FrameBuffer相关信息， x,y,w,h：清空的矩形
+ *           bps:framebuffer的bps
+ * 返回值   : -1:失败，  0：成功
+ */
+int CheckerBoard(FrameBufferInfo fbInfo, int x, int y, int w, int h, int bps)
+{
+    unsigned int rgb = 0;
+    int drawW = 0;
+    int drawH = 0;
+    int fbw = 0;
+    int fbh = fbInfo.vinfo.yres;
+    int r, g, b;
+    int rgFlag = 0;
+    
+    switch( bps )
+    {
+        case 32:
+            fbw = fbInfo.finfo.line_length/4;
+        break;
+        case 16:
+            fbw = fbInfo.finfo.line_length/2;
+        break;
+    }
+    if ( x + w > fbw )
+    {
+        drawW = fbw-x;
+    }
+    else
+    {
+        drawW = w;
+    }
+
+    if ( y + h > fbh )
+    {
+        drawH = fbh-y;
+    }
+    else
+    {
+        drawH = h;
+    }
+
+    for( int i = 0; i < drawH; i++ )
+    {
+        for( int j = 0; j < drawW; j++ )
+        {
+
+            r = (i/(drawH/10))*70%255;
+            g = (j/(drawW/10))*40%255;
+            b = (r+g)%255;
+            switch( bps )
+            {
+                case 32:
+                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4]   = b&0xFF;
+                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+1] = g&0xFF;
+                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+2] = r&0xFF;
+                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+3] = 0;
+                break;
+                case 16:
+                    rgb = (((r << 8) & 0xF800) | 
+                        ((g << 3) & 0x7E0) | 
+                        ((b >> 3)));
+                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
+                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
+                break;
+            }
+        }
+    }
+    return 0;
+}
+
+
+
 void showHelp()
 {
     printf("./programe options \n");    
     printf("USED:");
     printf("    -help: show help info\n");
-    printf("    -uc value: 0:color test 1:color patten 2:use usr color (default %s)\n", uc);
+    printf("    -uc value: 0:gradual change 1:linear leaf 2:user color 3:checkerboard (default %d)\n", uc);
     printf("    -r value: r value (default %d)\n", r);
     printf("    -g value: g value (default %d)\n", g);
     printf("    -b value: b value (default %d)\n", b);
@@ -365,9 +441,13 @@ int main ( int argc, char *argv[] )
             ClearFrameBuff(fbInfo, 6*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0x00, 0xcb, bps);
             ClearFrameBuff(fbInfo, 7*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0x00, 0x00, bps);
         }
-        else
+        else if(uc == 2)
         {
             ClearFrameBuff(fbInfo, 0, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, r, g, b, bps);
+        }
+        else if(uc == 3)
+        {
+            CheckerBoard(fbInfo, 0, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, bps);
         }
         usleep(33000);
     }
