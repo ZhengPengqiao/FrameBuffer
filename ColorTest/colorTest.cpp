@@ -24,6 +24,7 @@ static int r = 0;
 static int g = 0;
 static int b = 0;
 static int uc = 0;
+static int swapbr = 0;
 
 
 /*
@@ -261,6 +262,8 @@ void showHelp()
     printf("    -r value: r value (default %d)\n", r);
     printf("    -g value: g value (default %d)\n", g);
     printf("    -b value: b value (default %d)\n", b);
+    printf("    -swapbr: will swap red blue offset\n", b);
+    
 }
 
 
@@ -293,6 +296,10 @@ int checkParam(int argc,char **argv)
         {
             b = atoi(argv[i+1]);
             i++;
+        }
+        else if( strcmp("-swapbr", argv[i]) ==0 )
+        {
+            swapbr = 1;
         }
         else
         {
@@ -412,6 +419,30 @@ int main ( int argc, char *argv[] )
     /* Type of acceleration available */ 
     printf("finfo.accel=%d \n", fbInfo.finfo.accel); 
 
+    if( swapbr == 1 )
+    {
+        printf("============= NOTE ==============\n");
+        printf("THIS OPERATION WILL EFFECT SYSTEM\n");
+        printf("=================================\n");
+        printf("will swap red's offset and blue's offset\n");
+        int tmp = fbInfo.vinfo.red.offset;
+        fbInfo.vinfo.red.offset = fbInfo.vinfo.blue.offset;
+        fbInfo.vinfo.blue.offset=tmp;
+  
+        if (ioctl(fbInfo.fd, FBIOPUT_VSCREENINFO, &fbInfo.vinfo))  
+        {
+            perror("reading variable information ERR:\n"); 
+            close(fbInfo.fd);
+            printf("ERR----> OPERATION ERR, SWAP NOT EFFECT\n"); 
+            return 0; 
+        }
+        close(fbInfo.fd);
+        printf("OK----> OPERATION OK, SWAP EFFECT\n"); 
+        printf("=================================\n");
+        return 0;
+
+    }
+
     /*映射屏幕缓冲区到用户地址空间*/  
     fbInfo.fbp = (char *)mmap(0, fbInfo.finfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fbInfo.fd, 0);  
     if (fbInfo.fbp == MAP_FAILED)  
@@ -419,9 +450,8 @@ int main ( int argc, char *argv[] )
         perror("map framebuffer device to memory ERR:\n");  
         return 0;
     }  
-
+    
     printf("clear uc=%d r=%d g=%d b=%d \n", uc, r, g, b);
-
 
     while(1)
     {
