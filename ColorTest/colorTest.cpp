@@ -25,7 +25,7 @@ static int g = 0;
 static int b = 0;
 static int uc = 0;
 static int swapbr = 0;
-
+static int l_num = 8;
 
 /*
  * 函数名称 : ClearFrameBuff
@@ -258,10 +258,11 @@ void showHelp()
     printf("./programe options \n");    
     printf("USED:");
     printf("    -help: show help info\n");
-    printf("    -uc value: 0:gradual change 1:linear leaf 2:user color 3:checkerboard (default %d)\n", uc);
+    printf("    -uc value: 0:gradual change 1:linear leaf 2:user color 3:checkerboard 4:usr Line Num(Black/White) (default %d)\n", uc);
     printf("    -r value: r value (default %d)\n", r);
     printf("    -g value: g value (default %d)\n", g);
     printf("    -b value: b value (default %d)\n", b);
+    printf("    -l value: line num <-uc 4>(default %d)\n", l_num);
     printf("    -swapbr: will swap red blue offset\n", b);
     
 }
@@ -295,6 +296,11 @@ int checkParam(int argc,char **argv)
         else if( strcmp("-b", argv[i]) ==0 )
         {
             b = atoi(argv[i+1]);
+            i++;
+        }
+        else if( strcmp("-l", argv[i]) ==0 )
+        {
+            l_num = atoi(argv[i+1]);
             i++;
         }
         else if( strcmp("-swapbr", argv[i]) ==0 )
@@ -461,7 +467,7 @@ int main ( int argc, char *argv[] )
         }
         else if(uc == 1)
         {
-            int len = fbInfo.vinfo.xres/8;
+            float len = fbInfo.vinfo.xres/8;
             ClearFrameBuff(fbInfo, 0*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xff, 0xff, 0xff, bps);
             ClearFrameBuff(fbInfo, 1*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xb8, 0xc6, 0x00, bps);
             ClearFrameBuff(fbInfo, 2*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0xc2, 0xca, bps);
@@ -478,6 +484,22 @@ int main ( int argc, char *argv[] )
         else if(uc == 3)
         {
             CheckerBoard(fbInfo, 0, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, bps);
+        }
+        else if(uc == 4)
+        {
+            float len = fbInfo.vinfo.xres/l_num;
+            for( int i = 0; i < l_num; i++ )
+            {
+                if( i%2 == 0 )
+                {
+                    ClearFrameBuff(fbInfo, i*len, 0, fbInfo.vinfo.xres/l_num, fbInfo.vinfo.yres,  0xff, 0xff, 0xff, bps);
+                }
+                else
+                {
+                    ClearFrameBuff(fbInfo, i*len, 0, fbInfo.vinfo.xres/l_num, fbInfo.vinfo.yres,  0x00, 0x00, 0x00, bps);
+                }
+                
+            }
         }
         usleep(33000);
     }
