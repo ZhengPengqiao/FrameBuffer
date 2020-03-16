@@ -26,6 +26,14 @@ static int b = 0;
 static int uc = 0;
 static int swapbr = 0;
 static int l_num = 8;
+#define NO_MOVE 0
+#define LEFTTORIGHT 1
+#define RIGHTTOLEFT 2
+#define TOPTOBUTTON 3
+#define BUTTONTOTOP 4
+
+static int is_move = false;
+static int move_offset = 0;
 
 /*
  * 函数名称 : ClearFrameBuff
@@ -41,6 +49,7 @@ int ClearFrameBuff(FrameBufferInfo fbInfo, int x, int y, int w, int h, int r, in
     int drawH = 0;
     int fbw = 0;
     int fbh = fbInfo.vinfo.yres;
+  
     switch( bps )
     {
         case 32:
@@ -252,6 +261,64 @@ int CheckerBoard(FrameBufferInfo fbInfo, int x, int y, int w, int h, int bps)
 }
 
 
+/*
+ * 函数名称 : CheckerBoardCycleFrameBuffer
+ * 函数介绍 : 测试颜色FrameBuffer, 按照w,h扩至款宽高大小，如果超出屏幕，就绘制到屏幕开始
+ * 参数介绍 : fbInfo:FrameBuffer相关信息， x,y,w,h：清空的矩形
+ *           bps:framebuffer的bps
+ * 返回值   : -1:失败，  0：成功
+ */
+int CheckerBoardCycleFrameBuffer(FrameBufferInfo fbInfo, int x, int y, int w, int h, int bps)
+{
+    unsigned int rgb = 0;
+    int drawW = 0;
+    int drawH = 0;
+    int fbw = 0;
+    int fbh = fbInfo.vinfo.yres;
+    int r, g, b;
+    int rgFlag = 0;
+    
+    switch( bps )
+    {
+        case 32:
+            fbw = fbInfo.finfo.line_length/4;
+        break;
+        case 16:
+            fbw = fbInfo.finfo.line_length/2;
+        break;
+    }
+
+    drawW = w;
+    drawH = h;
+
+    for( int i = 0; i < drawH; i++ )
+    {
+        for( int j = 0; j < drawW; j++ )
+        {
+
+            r = (i/(drawH/10))*70%255;
+            g = (j/(drawW/10))*40%255;
+            b = (r+g)%255;
+            switch( bps )
+            {
+                case 32:
+                    fbInfo.fbp[fbw*4*( (i+y)%drawH )+( (j+x)%drawW )*4]   = b&0xFF;
+                    fbInfo.fbp[fbw*4*( (i+y)%drawH )+( (j+x)%drawW )*4+1] = g&0xFF;
+                    fbInfo.fbp[fbw*4*( (i+y)%drawH )+( (j+x)%drawW )*4+2] = r&0xFF;
+                    fbInfo.fbp[fbw*4*( (i+y)%drawH )+( (j+x)%drawW )*4+3] = 0;
+                break;
+                case 16:
+                    rgb = (((r << 8) & 0xF800) | 
+                        ((g << 3) & 0x7E0) | 
+                        ((b >> 3)));
+                    fbInfo.fbp[fbw*2*( (i+y)%drawH )+( (j+x)%drawW )*2] = (rgb)&0xFF;
+                    fbInfo.fbp[fbw*2*( (i+y)%drawH )+( (j+x)%drawW )*2+1] = (rgb>>8)&0xFF;
+                break;
+            }
+        }
+    }
+    return 0;
+}
 
 void showHelp()
 {
@@ -263,6 +330,7 @@ void showHelp()
     printf("    -g value: g value (default %d)\n", g);
     printf("    -b value: b value (default %d)\n", b);
     printf("    -l value: line num <-uc 4>(default %d)\n", l_num);
+    printf("    -move val: run move 0:NO 1:LTR 2:RTL 3:TTB 4:BTT(default 0)\n", is_move);
     printf("    -swapbr: will swap red blue offset\n", b);
     
 }
@@ -306,6 +374,18 @@ int checkParam(int argc,char **argv)
         else if( strcmp("-swapbr", argv[i]) ==0 )
         {
             swapbr = 1;
+        }
+        else if( strcmp("-move", argv[i]) ==0 )
+        {
+            is_move = atoi(argv[i+1]);
+            if( is_move > 4 )
+            {
+                printf("param -move %s is not support \n\n", argv[i]);
+                showHelp();
+                return -1;
+            }
+            i++;
+            printf("set -move=%d\n", is_move);
         }
         else
         {
@@ -467,15 +547,33 @@ int main ( int argc, char *argv[] )
         }
         else if(uc == 1)
         {
-            float len = fbInfo.vinfo.xres/8;
-            ClearFrameBuff(fbInfo, 0*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xff, 0xff, 0xff, bps);
-            ClearFrameBuff(fbInfo, 1*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xb8, 0xc6, 0x00, bps);
-            ClearFrameBuff(fbInfo, 2*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0xc2, 0xca, bps);
-            ClearFrameBuff(fbInfo, 3*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0xc6, 0x00, bps);
-            ClearFrameBuff(fbInfo, 4*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xc7, 0x00, 0xb9, bps);
-            ClearFrameBuff(fbInfo, 5*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xc4, 0x00, 0x00, bps);
-            ClearFrameBuff(fbInfo, 6*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0x00, 0xcb, bps);
-            ClearFrameBuff(fbInfo, 7*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0x00, 0x00, bps);
+            if( is_move == LEFTTORIGHT )
+            {
+                move_offset += 5;
+                int len = fbInfo.vinfo.xres/8;
+                ClearFrameBuff(fbInfo, (0*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xff, 0xff, 0xff, bps);
+                ClearFrameBuff(fbInfo, (1*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xb8, 0xc6, 0x00, bps);
+                ClearFrameBuff(fbInfo, (2*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0xc2, 0xca, bps);
+                ClearFrameBuff(fbInfo, (3*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0xc6, 0x00, bps);
+                ClearFrameBuff(fbInfo, (4*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xc7, 0x00, 0xb9, bps);
+                ClearFrameBuff(fbInfo, (5*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xc4, 0x00, 0x00, bps);
+                ClearFrameBuff(fbInfo, (6*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0x00, 0xcb, bps);
+                ClearFrameBuff(fbInfo, (7*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0x00, 0x00, bps); 
+            }
+            else
+            {
+                float len = fbInfo.vinfo.xres/8;
+                ClearFrameBuff(fbInfo, 0*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xff, 0xff, 0xff, bps);
+                ClearFrameBuff(fbInfo, 1*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xb8, 0xc6, 0x00, bps);
+                ClearFrameBuff(fbInfo, 2*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0xc2, 0xca, bps);
+                ClearFrameBuff(fbInfo, 3*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0xc6, 0x00, bps);
+                ClearFrameBuff(fbInfo, 4*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xc7, 0x00, 0xb9, bps);
+                ClearFrameBuff(fbInfo, 5*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xc4, 0x00, 0x00, bps);
+                ClearFrameBuff(fbInfo, 6*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0x00, 0xcb, bps);
+                ClearFrameBuff(fbInfo, 7*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0x00, 0x00, bps); 
+            }
+            
+
         }
         else if(uc == 2)
         {
@@ -483,7 +581,15 @@ int main ( int argc, char *argv[] )
         }
         else if(uc == 3)
         {
-            CheckerBoard(fbInfo, 0, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, bps);
+            if( is_move == LEFTTORIGHT )
+            {
+                move_offset += 5;
+                CheckerBoardCycleFrameBuffer(fbInfo, move_offset, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, bps);
+            }
+            else
+            {
+                CheckerBoard(fbInfo, move_offset, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, bps);
+            }
         }
         else if(uc == 4)
         {
@@ -498,7 +604,6 @@ int main ( int argc, char *argv[] )
                 {
                     ClearFrameBuff(fbInfo, i*len, 0, fbInfo.vinfo.xres/l_num, fbInfo.vinfo.yres,  0x00, 0x00, 0x00, bps);
                 }
-                
             }
         }
         usleep(33000);
