@@ -35,6 +35,7 @@ static int l_num = 8;
 
 static int is_move = false;
 static int move_offset = 0;
+static int screen_offset = 0;
 static bool exitflag = false;
 
 /*
@@ -98,14 +99,14 @@ int ClearFrameBuff(FrameBufferInfo fbInfo, int x, int y, int w, int h, int r, in
             switch( bps )
             {
                 case 32:
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4] = (rgb>>24)&0xFF;
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+1] = (rgb>>16)&0xFF;
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+2] = (rgb>>8)&0xFF;
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+3] = (rgb)&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4] = (rgb>>24)&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4+1] = (rgb>>16)&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4+2] = (rgb>>8)&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4+3] = (rgb)&0xFF;
                 break;
                 case 16:
-                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
-                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
                 break;
             }
         }
@@ -169,17 +170,17 @@ int TestColor(FrameBufferInfo fbInfo, int x, int y, int w, int h, int br, int bg
             switch( bps )
             {
                 case 32:
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4]   = b&0xFF;
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+1] = g&0xFF;
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+2] = r&0xFF;
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+3] = 0;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4]   = b&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4+1] = g&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4+2] = r&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4+3] = 0;
                 break;
                 case 16:
                     rgb = (((r << 8) & 0xF800) | 
                         ((g << 3) & 0x7E0) | 
                         ((b >> 3)));
-                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
-                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
                 break;
             }
         }
@@ -245,17 +246,17 @@ int TestUrandom(FrameBufferInfo fbInfo, int x, int y, int w, int h, int bps)
             switch( bps )
             {
                 case 32:
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4]   = b&0xFF;
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+1] = g&0xFF;
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+2] = r&0xFF;
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+3] = 0;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4]   = b&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4+1] = g&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4+2] = r&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4+3] = 0;
                 break;
                 case 16:
                     rgb = (((r << 8) & 0xF800) | 
                         ((g << 3) & 0x7E0) | 
                         ((b >> 3)));
-                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
-                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
                 break;
             }
         }
@@ -319,17 +320,17 @@ int CheckerBoard(FrameBufferInfo fbInfo, int x, int y, int w, int h, int bps)
             switch( bps )
             {
                 case 32:
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4]   = b&0xFF;
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+1] = g&0xFF;
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+2] = r&0xFF;
-                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+3] = 0;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4]   = b&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4+1] = g&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4+2] = r&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*(i+y)+(j+x)*4+3] = 0;
                 break;
                 case 16:
                     rgb = (((r << 8) & 0xF800) | 
                         ((g << 3) & 0x7E0) | 
                         ((b >> 3)));
-                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
-                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
                 break;
             }
         }
@@ -379,17 +380,17 @@ int CheckerBoardCycleFrameBuffer(FrameBufferInfo fbInfo, int x, int y, int w, in
             switch( bps )
             {
                 case 32:
-                    fbInfo.fbp[fbw*4*( (i+y)%drawH )+( (j+x)%drawW )*4]   = b&0xFF;
-                    fbInfo.fbp[fbw*4*( (i+y)%drawH )+( (j+x)%drawW )*4+1] = g&0xFF;
-                    fbInfo.fbp[fbw*4*( (i+y)%drawH )+( (j+x)%drawW )*4+2] = r&0xFF;
-                    fbInfo.fbp[fbw*4*( (i+y)%drawH )+( (j+x)%drawW )*4+3] = 0;
+                    fbInfo.fbp[screen_offset+fbw*4*( (i+y)%drawH )+( (j+x)%drawW )*4]   = b&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*( (i+y)%drawH )+( (j+x)%drawW )*4+1] = g&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*( (i+y)%drawH )+( (j+x)%drawW )*4+2] = r&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*4*( (i+y)%drawH )+( (j+x)%drawW )*4+3] = 0;
                 break;
                 case 16:
                     rgb = (((r << 8) & 0xF800) | 
                         ((g << 3) & 0x7E0) | 
                         ((b >> 3)));
-                    fbInfo.fbp[fbw*2*( (i+y)%drawH )+( (j+x)%drawW )*2] = (rgb)&0xFF;
-                    fbInfo.fbp[fbw*2*( (i+y)%drawH )+( (j+x)%drawW )*2+1] = (rgb>>8)&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*2*( (i+y)%drawH )+( (j+x)%drawW )*2] = (rgb)&0xFF;
+                    fbInfo.fbp[screen_offset+fbw*2*( (i+y)%drawH )+( (j+x)%drawW )*2+1] = (rgb>>8)&0xFF;
                 break;
             }
         }
@@ -409,6 +410,7 @@ void showHelp()
     printf("    -l value: line num <-uc 4>(default %d)\n", l_num);
     printf("    -move val: run move 0:NO 1:LTR 2:RTL 3:TTB 4:BTT(default 0)\n", is_move);
     printf("    -swapbr: will swap red blue offset\n", b);
+    printf("    -so val: screen offset\n", b);
     
 }
 
@@ -446,6 +448,11 @@ int checkParam(int argc,char **argv)
         else if( strcmp("-l", argv[i]) ==0 )
         {
             l_num = atoi(argv[i+1]);
+            i++;
+        }
+        else if( strcmp("-so", argv[i]) ==0 )
+        {
+            screen_offset = atoi(argv[i+1]);
             i++;
         }
         else if( strcmp("-swapbr", argv[i]) ==0 )
