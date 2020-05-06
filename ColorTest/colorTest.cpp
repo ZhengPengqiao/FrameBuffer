@@ -8,6 +8,7 @@
 #include <sys/ioctl.h>  
 #include <arpa/inet.h>
 #include <sys/time.h>  
+#include <signal.h>
 
 #define DEV_NAME "/dev/fb0"
 
@@ -34,6 +35,7 @@ static int l_num = 8;
 
 static int is_move = false;
 static int move_offset = 0;
+static bool exitflag = false;
 
 /*
  * 函数名称 : ClearFrameBuff
@@ -188,6 +190,81 @@ int TestColor(FrameBufferInfo fbInfo, int x, int y, int w, int h, int br, int bg
 
 
 /*
+ * 函数名称 : TestUrandom
+ * 函数介绍 : 测试颜色FrameBuffer
+ * 参数介绍 : fbInfo:FrameBuffer相关信息， x,y,w,h：清空的矩形
+ *           bps:framebuffer的bps
+ * 返回值   : -1:失败，  0：成功
+ */
+int TestUrandom(FrameBufferInfo fbInfo, int x, int y, int w, int h, int bps)
+{
+    unsigned int rgb = 0;
+    int drawW = 0;
+    int drawH = 0;
+    int fbw = 0;
+    int fbh = fbInfo.vinfo.yres;
+    int rgFlag = 0;
+    int r = 0;
+    int g = 0;
+    int b = 0;
+
+    switch( bps )
+    {
+        case 32:
+            fbw = fbInfo.finfo.line_length/4;
+        break;
+        case 16:
+            fbw = fbInfo.finfo.line_length/2;
+        break;
+    }
+    if ( x + w > fbw )
+    {
+        drawW = fbw-x;
+    }
+    else
+    {
+        drawW = w;
+    }
+
+    if ( y + h > fbh )
+    {
+        drawH = fbh-y;
+    }
+    else
+    {
+        drawH = h;
+    }
+
+    for( int i = 0; i < drawH; i++ )
+    {
+        for( int j = 0; j < drawW; j++ )
+        {
+            r = rand()/255;
+            g = rand()/255;
+            b = rand()/255;
+            switch( bps )
+            {
+                case 32:
+                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4]   = b&0xFF;
+                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+1] = g&0xFF;
+                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+2] = r&0xFF;
+                    fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+3] = 0;
+                break;
+                case 16:
+                    rgb = (((r << 8) & 0xF800) | 
+                        ((g << 3) & 0x7E0) | 
+                        ((b >> 3)));
+                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
+                    fbInfo.fbp[fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
+                break;
+            }
+        }
+    }
+    return 0;
+}
+
+
+/*
  * 函数名称 : CheckerBoard
  * 函数介绍 : 测试颜色FrameBuffer
  * 参数介绍 : fbInfo:FrameBuffer相关信息， x,y,w,h：清空的矩形
@@ -325,7 +402,7 @@ void showHelp()
     printf("./programe options \n");    
     printf("USED:");
     printf("    -help: show help info\n");
-    printf("    -uc value: 0:gradual change 1:linear leaf 2:user color 3:checkerboard 4:usr Line Num(Black/White) (default %d)\n", uc);
+    printf("    -uc value: 0:gradual change 1:linear leaf 2:user color 3:checkerboard 4:usr Line Num(Black/White) 5:urandom (default %d)\n", uc);
     printf("    -r value: r value (default %d)\n", r);
     printf("    -g value: g value (default %d)\n", g);
     printf("    -b value: b value (default %d)\n", b);
@@ -398,6 +475,12 @@ int checkParam(int argc,char **argv)
 }
 
 
+static void exit_signal(int signo)
+{
+    printf("receive signal exit, will exit\n");
+	exitflag = true;
+}
+
 int main ( int argc, char *argv[] )  
 {  
     FrameBufferInfo fbInfo;
@@ -413,6 +496,9 @@ int main ( int argc, char *argv[] )
     }
 
 
+	signal(SIGQUIT, exit_signal);
+	signal(SIGINT,  exit_signal);
+	signal(SIGPIPE, SIG_IGN);
 
     /*打开设备文件*/  
     fbInfo.fd = open(DEV_NAME, O_RDWR);  
@@ -539,7 +625,7 @@ int main ( int argc, char *argv[] )
     
     printf("clear uc=%d r=%d g=%d b=%d \n", uc, r, g, b);
 
-    while(1)
+    while(!exitflag)
     {
         if ( uc == 0 )
         {
@@ -606,6 +692,10 @@ int main ( int argc, char *argv[] )
                 }
             }
         }
+        else if(uc == 5)
+        {
+            TestUrandom(fbInfo, 0, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, bps);
+        }
         usleep(33000);
     }
 
@@ -613,5 +703,6 @@ int main ( int argc, char *argv[] )
     /*释放缓冲区，关闭设备*/
     munmap(fbInfo.fbp, fbInfo.finfo.smem_len);  
     close(fbInfo.fd);  
+    printf("exit success\n");
     return 0;  
 }  
