@@ -60,6 +60,9 @@ int ClearFrameBuff(FrameBufferInfo fbInfo, int x, int y, int w, int h, int r, in
         case 32:
             fbw = fbInfo.finfo.line_length/4;
         break;
+        case 24:
+            fbw = fbInfo.finfo.line_length/3;
+        break;
         case 16:
             fbw = fbInfo.finfo.line_length/2;
         break;
@@ -82,18 +85,6 @@ int ClearFrameBuff(FrameBufferInfo fbInfo, int x, int y, int w, int h, int r, in
         drawH = h;
     }
 
-    switch( bps )
-    {
-        case 32:
-            rgb = (b<<24) | (g<<16) | (r<<8);
-        break;
-        case 16:
-            rgb = (((unsigned(r) << 8) & 0xF800) | 
-                    ((unsigned(g) << 3) & 0x7E0) | 
-                    ((unsigned(b) >> 3)));
-        break;
-    }
-
     for( int i = 0; i < drawH; i++ )
     {
         for( int j = 0; j < drawW; j++ )
@@ -101,12 +92,21 @@ int ClearFrameBuff(FrameBufferInfo fbInfo, int x, int y, int w, int h, int r, in
             switch( bps )
             {
                 case 32:
-                    data[screen_offset+fbw*4*(i+y)+(j+x)*4] = (rgb>>24)&0xFF;
-                    data[screen_offset+fbw*4*(i+y)+(j+x)*4+1] = (rgb>>16)&0xFF;
-                    data[screen_offset+fbw*4*(i+y)+(j+x)*4+2] = (rgb>>8)&0xFF;
+                    data[screen_offset+fbw*4*(i+y)+(j+x)*4]   = b&0xFF;
+                    data[screen_offset+fbw*4*(i+y)+(j+x)*4+1] = g&0xFF;
+                    data[screen_offset+fbw*4*(i+y)+(j+x)*4+2] = r&0xFF;
                     data[screen_offset+fbw*4*(i+y)+(j+x)*4+3] = alpha;
                 break;
+                case 24:
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3]   = b&0xFF;
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3+1] = g&0xFF;
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3+2] = r&0xFF;
+                break;
                 case 16:
+
+                    rgb = (((unsigned(r) << 8) & 0xF800) | 
+                            ((unsigned(g) << 3) & 0x7E0) | 
+                            ((unsigned(b) >> 3)));
                     data[screen_offset+fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
                     data[screen_offset+fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
                 break;
@@ -138,6 +138,9 @@ int TestColor(FrameBufferInfo fbInfo, int x, int y, int w, int h, int br, int bg
     {
         case 32:
             fbw = fbInfo.finfo.line_length/4;
+        break;
+        case 24:
+            fbw = fbInfo.finfo.line_length/3;
         break;
         case 16:
             fbw = fbInfo.finfo.line_length/2;
@@ -177,6 +180,11 @@ int TestColor(FrameBufferInfo fbInfo, int x, int y, int w, int h, int br, int bg
                     data[screen_offset+fbw*4*(i+y)+(j+x)*4+2] = r&0xFF;
                     data[screen_offset+fbw*4*(i+y)+(j+x)*4+3] = alpha;
                 break;
+                case 24:
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3]   = b&0xFF;
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3+1] = g&0xFF;
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3+2] = r&0xFF;
+                break;
                 case 16:
                     rgb = (((r << 8) & 0xF800) | 
                         ((g << 3) & 0x7E0) | 
@@ -213,6 +221,9 @@ int TestSolidColor(FrameBufferInfo fbInfo, int x, int y, int w, int h, int br, i
     {
         case 32:
             fbw = fbInfo.finfo.line_length/4;
+        break;
+        case 24:
+            fbw = fbInfo.finfo.line_length/3;
         break;
         case 16:
             fbw = fbInfo.finfo.line_length/2;
@@ -264,6 +275,11 @@ int TestSolidColor(FrameBufferInfo fbInfo, int x, int y, int w, int h, int br, i
                     data[screen_offset+fbw*4*(i+y)+(j+x)*4+2] = r&0xFF;
                     data[screen_offset+fbw*4*(i+y)+(j+x)*4+3] = alpha;
                 break;
+                case 24:
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3]   = b&0xFF;
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3+1] = g&0xFF;
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3+2] = r&0xFF;
+                break;
                 case 16:
                     rgb = (((r << 8) & 0xF800) | 
                         ((g << 3) & 0x7E0) | 
@@ -304,6 +320,9 @@ int TestUrandom(FrameBufferInfo fbInfo, int x, int y, int w, int h, int bps)
         case 32:
             fbw = fbInfo.finfo.line_length/4;
         break;
+        case 24:
+            fbw = fbInfo.finfo.line_length/3;
+        break;
         case 16:
             fbw = fbInfo.finfo.line_length/2;
         break;
@@ -343,6 +362,11 @@ int TestUrandom(FrameBufferInfo fbInfo, int x, int y, int w, int h, int bps)
                     data[screen_offset+fbw*4*(i+y)+(j+x)*4+3] = a;
                     
                 break;
+                case 24:
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3]   = b&0xFF;
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3+1] = g&0xFF;
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3+2] = r&0xFF;
+                break;
                 case 16:
                     rgb = (((r << 8) & 0xF800) | 
                         ((g << 3) & 0x7E0) | 
@@ -378,6 +402,9 @@ int CheckerBoard(FrameBufferInfo fbInfo, int x, int y, int w, int h, int bps)
     {
         case 32:
             fbw = fbInfo.finfo.line_length/4;
+        break;
+        case 24:
+            fbw = fbInfo.finfo.line_length/3;
         break;
         case 16:
             fbw = fbInfo.finfo.line_length/2;
@@ -417,6 +444,11 @@ int CheckerBoard(FrameBufferInfo fbInfo, int x, int y, int w, int h, int bps)
                     data[screen_offset+fbw*4*(i+y)+(j+x)*4+2] = r&0xFF;
                     data[screen_offset+fbw*4*(i+y)+(j+x)*4+3] = alpha;
                 break;
+                case 24:
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3]   = b&0xFF;
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3+1] = g&0xFF;
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3+2] = r&0xFF;
+                break;
                 case 16:
                     rgb = (((r << 8) & 0xF800) | 
                         ((g << 3) & 0x7E0) | 
@@ -453,6 +485,9 @@ int CheckerBoardCycleFrameBuffer(FrameBufferInfo fbInfo, int x, int y, int w, in
         case 32:
             fbw = fbInfo.finfo.line_length/4;
         break;
+        case 24:
+            fbw = fbInfo.finfo.line_length/3;
+        break;
         case 16:
             fbw = fbInfo.finfo.line_length/2;
         break;
@@ -476,6 +511,11 @@ int CheckerBoardCycleFrameBuffer(FrameBufferInfo fbInfo, int x, int y, int w, in
                     data[screen_offset+fbw*4*( (i+y)%drawH )+( (j+x)%drawW )*4+1] = g&0xFF;
                     data[screen_offset+fbw*4*( (i+y)%drawH )+( (j+x)%drawW )*4+2] = r&0xFF;
                     data[screen_offset+fbw*4*( (i+y)%drawH )+( (j+x)%drawW )*4+3] = alpha;
+                break;
+                case 24:
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3]   = b&0xFF;
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3+1] = g&0xFF;
+                    data[screen_offset+fbw*3*(i+y)+(j+x)*3+2] = r&0xFF;
                 break;
                 case 16:
                     rgb = (((r << 8) & 0xF800) | 
