@@ -33,6 +33,7 @@ static int l_num = 8;
 #define RIGHTTOLEFT 2
 #define TOPTOBUTTON 3
 #define BUTTONTOTOP 4
+static int x_o = 0;
 
 static int is_move = false;
 static int move_offset = 0;
@@ -542,6 +543,7 @@ void showHelp()
     printf("    -alpha value: alpha value (default %d)\n", alpha);
     printf("    -l value: line num <-uc 4>(default %d)\n", l_num);
     printf("    -move val: run move 0:NO 1:LTR 2:RTL 3:TTB 4:BTT(default 0)\n", is_move);
+    printf("    -x_o val: x_o to clear(default 0)\n", is_move);
     printf("    -swapbr: will swap red blue offset\n", b);
     printf("    -so val: screen offset\n", b);
     
@@ -593,6 +595,11 @@ int checkParam(int argc,char **argv)
             screen_offset = atoi(argv[i+1]);
             i++;
         }
+        else if( strcmp("-xo", argv[i]) ==0 )
+        {
+            x_o = atoi(argv[i+1]);
+            i++;
+        }
         else if( strcmp("-swapbr", argv[i]) ==0 )
         {
             swapbr = 1;
@@ -634,6 +641,7 @@ int main ( int argc, char *argv[] )
     int frameCount = 0;
     int bps = 0;
     unsigned int rgb = 0;
+    float len = 10;
 
     if ( checkParam(argc, argv) )
     {
@@ -782,19 +790,19 @@ int main ( int argc, char *argv[] )
             if( is_move == LEFTTORIGHT )
             {
                 move_offset += 5;
-                int len = fbInfo.vinfo.xres/8;
-                ClearFrameBuff(fbInfo, (0*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xff, 0xff, 0xff, bps);
-                ClearFrameBuff(fbInfo, (1*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xb8, 0xc6, 0x00, bps);
-                ClearFrameBuff(fbInfo, (2*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0xc2, 0xca, bps);
-                ClearFrameBuff(fbInfo, (3*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0xc6, 0x00, bps);
-                ClearFrameBuff(fbInfo, (4*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xc7, 0x00, 0xb9, bps);
-                ClearFrameBuff(fbInfo, (5*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xc4, 0x00, 0x00, bps);
-                ClearFrameBuff(fbInfo, (6*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0x00, 0xcb, bps);
-                ClearFrameBuff(fbInfo, (7*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0x00, 0x00, bps); 
+                len = fbInfo.vinfo.xres/8;
+                ClearFrameBuff(fbInfo, (int)(0*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xff, 0xff, 0xff, bps);
+                ClearFrameBuff(fbInfo, (int)(1*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xb8, 0xc6, 0x00, bps);
+                ClearFrameBuff(fbInfo, (int)(2*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0xc2, 0xca, bps);
+                ClearFrameBuff(fbInfo, (int)(3*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0xc6, 0x00, bps);
+                ClearFrameBuff(fbInfo, (int)(4*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xc7, 0x00, 0xb9, bps);
+                ClearFrameBuff(fbInfo, (int)(5*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xc4, 0x00, 0x00, bps);
+                ClearFrameBuff(fbInfo, (int)(6*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0x00, 0xcb, bps);
+                ClearFrameBuff(fbInfo, (int)(7*len+move_offset)%fbInfo.vinfo.xres, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0x00, 0x00, bps); 
             }
             else
             {
-                float len = fbInfo.vinfo.xres/8;
+                len = fbInfo.vinfo.xres/8;
                 ClearFrameBuff(fbInfo, 0*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xff, 0xff, 0xff, bps);
                 ClearFrameBuff(fbInfo, 1*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0xb8, 0xc6, 0x00, bps);
                 ClearFrameBuff(fbInfo, 2*len, 0, fbInfo.vinfo.xres/8, fbInfo.vinfo.yres,  0x00, 0xc2, 0xca, bps);
@@ -825,7 +833,7 @@ int main ( int argc, char *argv[] )
         }
         else if(uc == 4)
         {
-            float len = fbInfo.vinfo.xres/l_num;
+            len = fbInfo.vinfo.xres/l_num;
             for( int i = 0; i < l_num; i++ )
             {
                 if( i%2 == 0 )
@@ -846,6 +854,8 @@ int main ( int argc, char *argv[] )
         {
             TestSolidColor(fbInfo, 0, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, r, g, b, bps);
         }
+
+        ClearFrameBuff(fbInfo, fbInfo.vinfo.xres-x_o, 0, x_o, fbInfo.vinfo.yres,  0x00, 0x00, 0x00, bps); 
 
         write(fbInfo.fd, data, fbInfo.finfo.smem_len);
         usleep(33000);
