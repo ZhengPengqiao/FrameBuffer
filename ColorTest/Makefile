@@ -5,7 +5,8 @@ INCLUDE +=
 STRIP           := ls
 CFLAGS	+=
 OBJS = \
-	colorTest.o\
+	colorTest.o \
+	BMP/bmp.o
 
 all:$(TARGET)
 

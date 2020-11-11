@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <sys/time.h>  
 #include <signal.h>
+#include "./BMP/bmp.h"
 
 #define DEV_NAME "/dev/fb0"
 
@@ -40,6 +41,7 @@ static int move_offset = 0;
 static int screen_offset = 0;
 static bool exitflag = false;
 static char data[4096*4096*4];
+static char *bmp_filename=(char*)"./assert/bmp.bmp";
 
 /*
  * 函数名称 : ClearFrameBuff
@@ -112,6 +114,65 @@ int ClearFrameBuff(FrameBufferInfo fbInfo, int x, int y, int w, int h, int r, in
                     data[screen_offset+fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
                 break;
             }
+        }
+    }
+    return 0;
+}
+
+
+/*
+ * 函数名称 : ClearRightCol
+ * 函数介绍 : 将最后一列画黑
+ * 参数介绍 : fbInfo:FrameBuffer相关信息，r,g,b:使用的颜色,
+ *           bps:framebuffer的bps
+ * 返回值   : -1:失败，  0：成功
+ */
+int ClearRightCol(FrameBufferInfo fbInfo, int r, int g, int b, int bps)
+{
+    unsigned int rgb = 0;
+    int drawW = 0;
+    int drawH = 0;
+    int fbw = 0;
+    int fbh = fbInfo.vinfo.yres_virtual;
+  
+    switch( bps )
+    {
+        case 32:
+            fbw = fbInfo.finfo.line_length/4;
+        break;
+        case 24:
+            fbw = fbInfo.finfo.line_length/3;
+        break;
+        case 16:
+            fbw = fbInfo.finfo.line_length/2;
+        break;
+    }
+    drawW = fbw;
+    drawH = fbh;
+
+    for( int i = 0; i < drawH; i++ )
+    {
+        switch( bps )
+        {
+            case 32:
+                fbInfo.fbp[fbw*4*i+(drawW-1)*4]   = b&0xFF;
+                fbInfo.fbp[fbw*4*i+(drawW-1)*4+1] = g&0xFF;
+                fbInfo.fbp[fbw*4*i+(drawW-1)*4+2] = r&0xFF;
+                fbInfo.fbp[fbw*4*i+(drawW-1)*4+3] = alpha;
+            break;
+            case 24:
+                fbInfo.fbp[fbw*3*i+(drawW-1)*3]   = b&0xFF;
+                fbInfo.fbp[fbw*3*i+(drawW-1)*3+1] = g&0xFF;
+                fbInfo.fbp[fbw*3*i+(drawW-1)*3+2] = r&0xFF;
+            break;
+            case 16:
+
+                rgb = (((unsigned(r) << 8) & 0xF800) | 
+                        ((unsigned(g) << 3) & 0x7E0) | 
+                        ((unsigned(b) >> 3)));
+                fbInfo.fbp[fbw*2*i+(drawW-1)*2] = (rgb)&0xFF;
+                fbInfo.fbp[fbw*2*i+(drawW-1)*2+1] = (rgb>>8)&0xFF;
+            break;
         }
     }
     return 0;
@@ -531,21 +592,92 @@ int CheckerBoardCycleFrameBuffer(FrameBufferInfo fbInfo, int x, int y, int w, in
     return 0;
 }
 
+
+/*
+ * 函数名称 : ShowBmp
+ * 函数介绍 : 将指定的图像显示在指定的位置
+ * 参数介绍 : fbInfo:FrameBuffer信息， x,y:显示的位置， bmpBuff:图片数据， bw,bh:图片宽高,  
+ *           bps:framebuffer的bps
+ * 返回值   : -1:失败，  0：成功,
+ */
+int ShowBmp( FrameBufferInfo fbInfo, int x, int y, char *bmpBuff, int bw, int bh, int bps)
+{
+    unsigned int rgb = 0;
+    int drawW = 0;
+    int drawH = 0;
+    int fbw = 0;
+    int fbh = fbInfo.vinfo.yres;
+
+    switch( bps )
+    {
+        case 32:
+            fbw = fbInfo.finfo.line_length/4;
+        break;
+        case 16:
+            fbw = fbInfo.finfo.line_length/2;
+        break;
+    }
+
+    if ( x + bw > fbw )
+    {
+        drawW = fbw-x;
+    }
+    else
+    {
+        drawW = bw;
+    }
+
+    if ( y + bh > fbh )
+    {
+        drawH = fbh-y;
+    }
+    else
+    {
+        drawH = bh;
+    }
+
+    for( int i = 0; i < drawH; i++ )
+    {
+        for( int j = 0; j < drawW; j++ )
+        {
+                switch( bps )
+                {
+                    case 32:
+                        fbInfo.fbp[fbw*4*(i+y)+(j+x)*4] = bmpBuff[i*bw*3+j*3+0];
+                        fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+1] = bmpBuff[i*bw*3+j*3+1];
+                        fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+2] = bmpBuff[i*bw*3+j*3+2];
+                        fbInfo.fbp[fbw*4*(i+y)+(j+x)*4+3] = 255;
+                    break;
+                    case 16:
+                        rgb = (((bmpBuff[i*bw*3+j*3+2] << 8) & 0xF800) | 
+                                ((bmpBuff[i*bw*3+j*3+1] << 3) & 0x7E0) | 
+                                ((bmpBuff[i*bw*3+j*3+0] >> 3)));
+                        fbInfo.fbp[fbw*2*(i+y)+(j+x)*2] = (rgb)&0xFF;
+                        fbInfo.fbp[fbw*2*(i+y)+(j+x)*2+1] = (rgb>>8)&0xFF;
+                    break;
+                }
+
+        }
+    } 
+    return 0;
+}
+
 void showHelp()
 {
     printf("./programe options \n");    
     printf("USED:");
     printf("    -help: show help info\n");
-    printf("    -uc value: 0:gradual change 1:linear leaf 2:user color 3:checkerboard 4:usr Line Num(Black/White) 5:urandom (default %d)\n", uc);
+    printf("    -uc value: 0:gradual change 1:linear leaf 2:user color 3:checkerboard 4:usr Line Num(Black/White) 5:urandom 6:SolidColor 8:bmp image  (default %d)\n", uc);
     printf("    -r value: r value (default %d)\n", r);
     printf("    -g value: g value (default %d)\n", g);
     printf("    -b value: b value (default %d)\n", b);
     printf("    -alpha value: alpha value (default %d)\n", alpha);
     printf("    -l value: line num <-uc 4>(default %d)\n", l_num);
-    printf("    -move val: run move 0:NO 1:LTR 2:RTL 3:TTB 4:BTT(default 0)\n", is_move);
-    printf("    -x_o val: x_o to clear(default 0)\n", is_move);
-    printf("    -swapbr: will swap red blue offset\n", b);
-    printf("    -so val: screen offset\n", b);
+    printf("    -move val: run move 0:NO 1:LTR 2:RTL 3:TTB 4:BTT(default %d)\n", is_move);
+    printf("    -x_o val: x_o to clear(default 0)\n");
+    printf("    -swapbr: will swap red blue offset\n");
+    printf("    -so val: screen offset\n");
+    printf("    -bmp filename: bmp_filename(default:%s)\n", bmp_filename);
     
 }
 
@@ -600,6 +732,11 @@ int checkParam(int argc,char **argv)
             x_o = atoi(argv[i+1]);
             i++;
         }
+        else if( strcmp("-bmp", argv[i]) ==0 )
+        {
+            bmp_filename = argv[i+1];
+            i++;
+        }
         else if( strcmp("-swapbr", argv[i]) ==0 )
         {
             swapbr = 1;
@@ -642,17 +779,25 @@ int main ( int argc, char *argv[] )
     int bps = 0;
     unsigned int rgb = 0;
     float len = 10;
+    BmpInfo *bmpInfo = NULL;
 
     if ( checkParam(argc, argv) )
     {
         printf("checkParam Err\n");
         return 0;
     }
-
-
+    
 	signal(SIGQUIT, exit_signal);
 	signal(SIGINT,  exit_signal);
 	signal(SIGPIPE, SIG_IGN);
+
+    if( uc == 8 )
+    {
+        bmpInfo = new BmpInfo(bmp_filename);
+        /*BMP的上下是翻转的，这里将图像数据翻转过来*/
+        bmpInfo->MirrorByV();
+        printf("fileName=%s  width=%d height=%d length=%d\n", bmpInfo->fileName, bmpInfo->imagewidth, bmpInfo->imageheight, bmpInfo->pixellength);
+    }
 
     /*打开设备文件*/  
     fbInfo.fd = open(DEV_NAME, O_RDWR);  
@@ -854,16 +999,36 @@ int main ( int argc, char *argv[] )
         {
             TestSolidColor(fbInfo, 0, 0, fbInfo.vinfo.xres, fbInfo.vinfo.yres, r, g, b, bps);
         }
+        else if( uc == 7 )
+        {
+            ClearRightCol(fbInfo, 0x00, 0x00, 0x00, bps); 
+        }
+        else if( uc == 8 )
+        {
+            ShowBmp(fbInfo, 0, 0,\
+                bmpInfo->pixeldata, bmpInfo->imagewidth, bmpInfo->imageheight, bps);
+        }
 
-        ClearFrameBuff(fbInfo, fbInfo.vinfo.xres-x_o, 0, x_o, fbInfo.vinfo.yres,  0x00, 0x00, 0x00, bps); 
+        if( uc != 7 )
+        {
+            ClearFrameBuff(fbInfo, fbInfo.vinfo.xres-x_o, 0, x_o, fbInfo.vinfo.yres,  0x00, 0x00, 0x00, bps); 
 
-        write(fbInfo.fd, data, fbInfo.finfo.smem_len);
-        usleep(33000);
+            write(fbInfo.fd, data, fbInfo.finfo.smem_len);
+            usleep(33000);
+        }
+        else
+        {
+            usleep(10000);
+        }
     }
 
     /*释放缓冲区，关闭设备*/
     munmap(fbInfo.fbp, fbInfo.finfo.smem_len);  
     close(fbInfo.fd);  
+    if ( bmpInfo != NULL )
+    {
+        delete bmpInfo;
+    }
     printf("exit success\n");
     return 0;  
 }  
